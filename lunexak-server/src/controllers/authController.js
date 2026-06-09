@@ -1,96 +1,127 @@
 const User = require("../models/User");
 const bcrypt = require("bcryptjs");
-const generateToken = require("../utils/generateTokens");
-
-// Register
+const jwt = require("jsonwebtoken");
+const { generateAccessToken, generateRefreshToken } = require("../utils/generateTokens");
 
 const registerUser = async (req, res) => {
   try {
-    const { name, email, password, role } = req.body;
+    const { name, email, password } = req.body;
 
     const userExists = await User.findOne({ email });
 
     if (userExists) {
-      return res.status(400).json({
-        success: false,
-        message: "User already exists",
-      });
+      return res.status(400).json({ success: false, message: "User already exists" });
     }
 
-    const hashedPassword = await bcrypt.hash(password, 10);
+    const passwordHash = await bcrypt.hash(password, 10);
 
     const user = await User.create({
       name,
       email,
-      password: hashedPassword,
-      role,
+      passwordHash,
+      role: "CUSTOMER",
+      isVerified: false,
     });
 
     res.status(201).json({
       success: true,
-      message: "User Registered Successfully",
-      token: generateToken(user._id, user.role),
-      user,
+      message: "User registered. Please verify your email.",
     });
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: error.message,
-    });
+    res.status(500).json({ success: false, message: error.message });
   }
 };
-
-// Login
 
 const loginUser = async (req, res) => {
   try {
     const { email, password } = req.body;
 
     const user = await User.findOne({ email });
-
     if (!user) {
-      return res.status(401).json({
-        success: false,
-        message: "Invalid Email",
-      });
+      return res.status(401).json({ success: false, message: "Invalid Email" });
     }
 
-    const isMatch = await bcrypt.compare(
-      password,
-      user.password
-    );
-
+    const isMatch = await bcrypt.compare(password, user.passwordHash);
     if (!isMatch) {
-      return res.status(401).json({
-        success: false,
-        message: "Invalid Password",
-      });
+      return res.status(401).json({ success: false, message: "Invalid Password" });
     }
 
-const token = generateToken(user._id, user.role);
+    if (!user.isActive) {
+      return res.status(403).json({ success: false, message: "Account is inactive" });
+    }
 
-const userResponse = {
-  _id: user._id,
-  name: user.name,
-  email: user.email,
-  role: user.role,
+    const accessToken = generateAccessToken(user._id, user.role);
+    const refreshToken = generateRefreshToken(user._id);
+
+    res.cookie("refreshToken", refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    });
+
+    res.status(200).json({
+      success: true,
+      message: "Login Successful",
+      accessToken,
+      user: {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        isVerified: user.isVerified,
+      },
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
 };
 
-res.status(200).json({
-  success: true,
-  message: "Login Successful",
-  token,
-  user: userResponse,
-});
+const logoutUser = (req, res) => {
+  res.clearCookie("refreshToken");
+  res.status(200).json({ success: true, message: "Logged out successfully" });
+};
+
+const refreshTokenHandler = async (req, res) => {
+  try {
+    const { refreshToken } = req.cookies;
+    if (!refreshToken) {
+      return res.status(401).json({ success: false, message: "No refresh token provided" });
+    }
+
+    const decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET || "fallback_refresh_secret");
+    const user = await User.findById(decoded.id);
+
+    if (!user || !user.isActive) {
+      return res.status(401).json({ success: false, message: "Invalid token or inactive user" });
+    }
+
+    const accessToken = generateAccessToken(user._id, user.role);
+    res.status(200).json({ success: true, accessToken });
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: error.message,
-    });
+    res.status(401).json({ success: false, message: "Invalid refresh token" });
+  }
+};
+
+const verifyEmail = async (req, res) => {
+  try {
+    const { email } = req.body;
+    // Basic simulation of email verification since we don't have token logic yet
+    const user = await User.findOne({ email });
+    if (!user) return res.status(404).json({ success: false, message: "User not found" });
+
+    user.isVerified = true;
+    await user.save();
+    res.status(200).json({ success: true, message: "Email verified successfully" });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
   }
 };
 
 module.exports = {
   registerUser,
   loginUser,
+  logoutUser,
+  refreshTokenHandler,
+  verifyEmail,
 };

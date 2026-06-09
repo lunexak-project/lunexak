@@ -1,35 +1,45 @@
-import jwt from "jsonwebtoken";
+const jwt = require("jsonwebtoken");
+const User = require("../models/User");
 
-export const authMiddleware = (req, res, next) => {
-  const token = req.headers.authorization?.split(" ")[1];
+const requireAuth = async (req, res, next) => {
+  let token;
 
-  if (!token) {
-    return res.status(401).json({ message: "No token provided" });
+  if (req.headers.authorization && req.headers.authorization.startsWith("Bearer")) {
+    try {
+      token = req.headers.authorization.split(" ")[1];
+      const decoded = jwt.verify(token, process.env.JWT_SECRET || "fallback_secret");
+
+      req.user = await User.findById(decoded.id).select("-passwordHash");
+      
+      if (!req.user || !req.user.isActive) {
+        return res.status(401).json({ success: false, message: "Not authorized or inactive user" });
+      }
+      
+      next();
+    } catch (error) {
+      res.status(401).json({ success: false, message: "Not authorized, token failed" });
+    }
+  } else {
+    res.status(401).json({ success: false, message: "Not authorized, no token" });
   }
+};
 
-  try {
-    const decoded = jwt.verify(
-      token,
-      process.env.JWT_SECRET || "your-secret-key"
-    );
-    req.user = decoded;
+const requireRole = (roles) => {
+  return (req, res, next) => {
+    if (!req.user) {
+      return res.status(401).json({ success: false, message: "Not authorized" });
+    }
+    
+    if (!roles.includes(req.user.role)) {
+      return res.status(403).json({ success: false, message: "Forbidden: Insufficient permissions" });
+    }
+    
     next();
-  } catch (error) {
-    res.status(401).json({ message: "Invalid token" });
-  }
+  };
 };
 
-export const isAdmin = (req, res, next) => {
-  if (req.user?.role !== "admin") {
-    return res.status(403).json({ message: "Admin access required" });
-  }
-  next();
-};
-
-export const isEmployee = (req, res, next) => {
-  if (req.user?.role !== "employee" && req.user?.role !== "admin") {
-    return res.status(403).json({ message: "Employee access required" });
-  }
-  next();
+module.exports = {
+  requireAuth,
+  requireRole,
 };
 

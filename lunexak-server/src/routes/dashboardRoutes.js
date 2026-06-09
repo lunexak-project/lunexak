@@ -1,4 +1,5 @@
 const express = require("express");
+const { requireAuth, requireRole } = require("../middleware/authMiddleware");
 
 const {
   getDashboardStats,
@@ -6,6 +7,6 @@ const {
 
 const router = express.Router();
 
-router.get("/", getDashboardStats);
+router.get("/", requireAuth, requireRole(["ADMIN"]), getDashboardStats);
 
 module.exports = router;

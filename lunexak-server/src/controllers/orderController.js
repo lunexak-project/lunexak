@@ -4,7 +4,8 @@ const createOrder = async (req, res) => {
   try {
     console.log(req.body);
 
-    const order = await Order.create(req.body);
+    const orderData = { ...req.body, user: req.user.id };
+    const order = await Order.create(orderData);
 
     res.status(201).json({
       success: true,
@@ -37,7 +38,7 @@ const getOrders = async (req, res) => {
 const getMyOrders = async (req, res) => {
   try {
     const orders = await Order.find({
-      user: req.params.userId,
+      user: req.user.id,
     });
 
     res.status(200).json({

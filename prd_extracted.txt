@@ -1,0 +1,565 @@
+LunexAK
+E-Commerce Platform
+PROJECT DEVELOPMENT DOCUMENT
+
+Document Type
+Full Project Specification — Modules, APIs, Database & Workflows
+Platform
+LunexAK Premium D2C E-Commerce
+Version
+v1.0 — Initial Development Scope
+Prepared For
+Development Team
+Date
+2026
+Status
+Ready for Development
+
+This document provides a comprehensive breakdown of all modules, API groups, database schema, workflows, and feature roadmap for the LunexAK platform. It serves as the primary development reference for the engineering team.
+
+SECTION 1 — PLATFORM OVERVIEW
+
+LunexAK is a premium brand-led D2C e-commerce platform built for lifestyle and consumer products. The system combines a polished storefront experience with controlled internal workflows — including role-based access, admin-gated product publishing, automated order communications, and a scalable MongoDB-backed architecture.
+
+Core Objectives
+▸  Premium consumer browsing experience
+▸  Login-required checkout flow
+▸  Admin-controlled product approval
+▸  Employee-assisted product entry
+▸  SEO-first architecture
+▸  Automated order email system
+▸  Scalable D2C foundation
+
+Technology Stack
+▸  Frontend: React / Next.js (SSR)
+▸  Backend: Node.js + Express (REST API)
+▸  Database: MongoDB (Mongoose ODM)
+▸  Auth: JWT + Refresh Tokens
+▸  Media: CDN / Object Storage
+▸  Email: Transactional Email Service
+▸  Search: Full-text + Filter Engine
+
+SECTION 2 — ROLES & ACCESS CONTROL
+
+2.1  Platform Roles
+
+ADMIN — Full Platform Authority
+▸  Product management: approve, reject, publish, or unpublish any product
+▸  Category management: create, edit, order, activate, and assign SEO data
+▸  Employee management: create accounts, assign tasks, revoke access
+▸  Order management: view all orders, update statuses, handle disputes
+▸  Banner & homepage management: upload campaigns, manage featured sections
+▸  SEO settings: edit metadata on category pages, landing pages, product pages
+▸  User records: view all customer accounts and account data
+▸  Dashboard analytics: revenue, order volume, product performance, pending tasks
+▸  Approval workflow: final authority on all content before public visibility
+
+EMPLOYEE — Product Content Entry
+▸  Create product drafts: title, description, pricing, category, specifications
+▸  Upload and sort product images with alt text
+▸  Fill SEO fields for products: meta title, meta description, slug
+▸  Assign category and add tags
+▸  Enter stock levels and variant data
+▸  Submit products for admin review
+▸  View review feedback and correct rejected products
+▸  Cannot publish, approve, or modify live admin-approved products
+
+CUSTOMER — Logged-In Buyer
+▸  Browse, search, and filter all public products
+▸  View product detail pages with full info
+▸  Create account and manage profile
+▸  Save multiple delivery addresses
+▸  Add items to cart and manage cart
+▸  Place orders (login required)
+▸  Track order status
+▸  Save products to wishlist
+▸  Leave product reviews
+
+VISITOR — Public Guest
+▸  Access homepage, category pages, product pages
+▸  Use search and filter functionality
+▸  Read brand content and policies
+▸  Cannot place orders (redirected to login)
+▸  Cannot access wishlist or order history
+
+SECTION 3 — PLATFORM MODULES
+
+The platform is composed of 12 core modules. Each module has a defined scope and maps directly to one or more API groups and database collections.
+
+3.1  Frontend Modules
+
+M01 — Homepage & Discovery
+▸  Hero banner section with CTA and campaign display
+▸  Search bar with autocomplete and instant results
+▸  Featured categories grid with animated tiles
+▸  New arrivals product row
+▸  Trending products section
+▸  Lifestyle collections showcase
+▸  Trust and quality messaging blocks
+▸  Quick-links to key categories
+▸  Brand story teaser
+▸  Footer: company links, policies, support, social
+
+M02 — Product Listing & Category Pages
+▸  Category header with description and SEO content block
+▸  Sidebar filters: price range, size, color, brand, availability
+▸  Sorting options: price, popularity, newest, rating
+▸  Product cards: image, title, price, rating, stock badge, quick-add
+▸  Pagination with lazy-load option
+▸  Breadcrumb navigation
+▸  Active filter tags with clear option
+▸  Empty state for no results
+
+M03 — Product Detail Pages
+▸  Image gallery with zoom and swipe functionality
+▸  Product title, brand, SKU, rating summary
+▸  Pricing with sale price support
+▸  Variant selector: size, color, material, packaging
+▸  Stock status indicator (in stock / low stock / out of stock)
+▸  Add to cart and add to wishlist actions
+▸  Product description with structured content blocks
+▸  Specifications table
+▸  Shipping and trust info section
+▸  Customer reviews with rating breakdown
+▸  Related products row
+▸  Frequently bought together (future)
+▸  SEO: unique title tag, meta description, product schema
+
+M04 — Cart & Checkout
+▸  Slide-over cart drawer with item management
+▸  Quantity adjustment and item removal
+▸  Cart summary with subtotal
+▸  Login gate: redirects unauthenticated users before checkout
+▸  Address selection or new address entry
+▸  Order summary confirmation page
+▸  Order placement with inventory update trigger
+▸  Post-order confirmation screen with order number
+
+M05 — User Account
+▸  Registration with email verification
+▸  Login with JWT token (access + refresh)
+▸  Password reset via email link
+▸  Profile management: name, phone, email
+▸  Address book: add, edit, delete, set default
+▸  Order history with status tracking
+▸  Wishlist management
+▸  Account settings: password change, notification preferences
+
+M06 — Search System
+▸  Autocomplete as user types (debounced)
+▸  Full-text query matching across title, description, tags
+▸  Category-aware search with filter inheritance
+▸  Typo tolerance and keyword normalization
+▸  Results ranked by: relevance, popularity, stock, recency
+▸  Filter and sort applicable on search results
+▸  Search result page with breadcrumb and count
+▸  No-result state with suggestions
+
+3.2  Backend / Admin Modules
+
+M07 — Admin Dashboard
+▸  KPI cards: total products, orders, users, revenue (daily / weekly / monthly)
+▸  Pending approvals queue with quick-action buttons
+▸  Recent orders list with status badges
+▸  Low-stock product alerts
+▸  Employee activity summary
+▸  Revenue chart (bar / line)
+▸  Top-performing products list
+▸  Quick navigation to all admin sections
+
+M08 — Product Management (Admin)
+▸  View all products with status filter: draft, pending, approved, rejected, live
+▸  Review submitted products: full preview with all fields
+▸  Approve or reject with comment
+▸  Edit any product field post-approval
+▸  Publish / unpublish products from storefront
+▸  Manage product categories and SEO
+▸  Bulk actions: approve multiple, archive, delete
+▸  Image management per product
+
+M09 — Employee Product Entry (Employee Panel)
+▸  Create new product: fill all required fields
+▸  Upload multiple product images with sort order and alt text
+▸  Assign category from approved category list
+▸  Enter variant data: sizes, colors, materials
+▸  Fill SEO fields: meta title, meta description, slug
+▸  Set pricing and stock quantity
+▸  Save as draft or submit for admin review
+▸  View own submissions and approval status
+▸  Edit and resubmit rejected products
+
+M10 — Order Management
+▸  Full order list with filters by status, date, customer
+▸  Order detail view: items, pricing, address, timeline
+▸  Status update: confirmed → dispatched → delivered
+▸  Manual cancellation with reason
+▸  Inventory reconciliation on cancellation
+▸  Refund initiation (future)
+▸  Email trigger on each status change
+
+M11 — Category Management
+▸  Create / edit categories with parent-child hierarchy
+▸  Slug auto-generation and manual override
+▸  Upload category banner image
+▸  Toggle active / inactive status
+▸  Assign display order for storefront
+▸  Add SEO metadata per category
+▸  Featured category toggle (homepage display)
+
+M12 — Content & SEO Management
+▸  Edit SEO metadata for any category, landing, or content page
+▸  Manage homepage banners: upload image, set link, schedule dates
+▸  Edit brand story, about, FAQ, policy pages via rich text editor
+▸  XML sitemap auto-generation from active products and categories
+▸  robots.txt configuration
+▸  Canonical URL management
+▸  Structured data (schema) visibility toggle per page type
+
+SECTION 4 — API ARCHITECTURE
+
+All backend functionality is exposed through a RESTful API, organized by business domain. Every endpoint enforces role-based authorization. APIs are stateless and token-authenticated.
+
+API Domain
+Base Route
+Key Endpoints / Operations
+Auth API
+/api/auth
+POST /register, /login, /logout, /refresh-token, /verify-email, /forgot-password, /reset-password
+User API
+/api/users
+GET /me, PUT /profile, GET /addresses, POST /addresses, PUT /addresses/:id, DELETE /addresses/:id, GET /wishlist, POST /wishlist, DELETE /wishlist/:id
+Product API
+/api/products
+GET / (list+filter), GET /:slug, POST / (employee), PUT /:id, DELETE /:id, POST /:id/submit, POST /:id/approve, POST /:id/reject, POST /:id/publish
+Category API
+/api/categories
+GET / (tree), GET /:slug, POST / (admin), PUT /:id, DELETE /:id, PATCH /:id/status, PATCH /:id/featured
+Cart API
+/api/cart
+GET /, POST /items, PUT /items/:id, DELETE /items/:id, DELETE / (clear cart)
+Order API
+/api/orders
+POST / (place order), GET / (customer history), GET /:id, GET /admin/all, PATCH /:id/status, POST /:id/cancel
+Review API
+/api/reviews
+GET /product/:productId, POST /, PUT /:id, DELETE /:id, PATCH /:id/moderate
+Search API
+/api/search
+GET /autocomplete?q=, GET /results?q=&filters=&sort=&page=
+Media API
+/api/media
+POST /upload, DELETE /:id, GET /:id, POST /product/:id/images, DELETE /product/:id/images/:imageId
+Admin API
+/api/admin
+GET /dashboard, GET /users, PATCH /users/:id/status, GET /employees, POST /employees, GET /approvals, GET /analytics, GET /audit-logs
+Notification API
+/api/notifications
+GET / (user), PATCH /:id/read, POST /trigger (system), GET /email-logs (admin)
+SEO API
+/api/seo
+GET /page/:type/:slug, PUT /page/:type/:slug, GET /sitemap.xml, GET /robots.txt, PUT /robots
+
+Note: All admin endpoints require Admin role JWT claim. Employee endpoints require Employee or Admin. Customer endpoints require any authenticated user.
+
+SECTION 5 — DATABASE SCHEMA (MONGODB)
+
+MongoDB is used as the primary data store with Mongoose ODM. Collections follow a structured document model with referential linking via ObjectIDs. All collections include createdAt and updatedAt timestamps.
+
+Collection
+Key Fields
+Purpose
+users
+_id, name, email, passwordHash, role, isVerified, isActive, phone, createdAt
+Stores all platform user accounts across all roles
+products
+_id, title, slug, description, price, salePrice, categoryId, brandId, status, approvalState, stock, seoTitle, seoDescription, tags, variants[], ratingAvg, ratingCount
+Master product data with approval state and SEO fields
+categories
+_id, name, slug, parentId, isActive, isFeatured, displayOrder, bannerImage, seoTitle, seoDescription
+Category tree with SEO and display configuration
+productImages
+_id, productId, url, altText, sortOrder, mimeType, sizeBytes
+Product image metadata and storage references
+productVariants
+_id, productId, type, value, stock, priceModifier
+Size, color, material, or other variant data per product
+carts
+_id, userId, items[], updatedAt
+Active cart sessions with item references
+orders
+_id, userId, status, paymentStatus, items[], addressSnapshot, priceSummary, notes, createdAt
+Order master record with pricing and status timeline
+orderItems
+_id, orderId, productId, variantId, quantity, unitPrice, title, imageUrl
+Line items with product snapshot for order integrity
+addresses
+_id, userId, fullName, phone, line1, line2, city, state, pincode, country, isDefault
+Saved delivery addresses per user
+wishlists
+_id, userId, productId, addedAt
+Saved product references per user
+reviews
+_id, userId, productId, rating, title, body, isApproved, createdAt
+Customer reviews with moderation flag
+approvals
+_id, productId, adminId, action, comment, timestamp
+Audit trail of all product approval actions
+notifications
+_id, userId, type, message, isRead, emailSent, eventRef, createdAt
+User notification records with email trigger status
+banners
+_id, title, imageUrl, linkUrl, position, isActive, startDate, endDate
+Homepage and campaign banner management
+seoPages
+_id, pageType, slug, title, metaDescription, canonicalUrl, schemaJson
+Page-level SEO metadata for all content pages
+employeeTasks
+_id, employeeId, productId, status, notes, assignedAt, completedAt
+Product entry task assignments and tracking
+auditLogs
+_id, userId, action, resource, resourceId, ipAddress, timestamp
+Security and action audit trail for all critical operations
+
+SECTION 6 — KEY WORKFLOWS
+
+6.1  Product Creation & Approval Workflow
+
+1
+Employee logs in and opens the Employee Panel → New Product form
+2
+Employee fills all required fields: title, description, price, category, variants, stock, and SEO data
+3
+Employee uploads product images with alt text and sets sort order
+4
+Employee saves product as a Draft (auto-saved) or clicks Submit for Review
+5
+System sets product status to PENDING — product is not visible on the storefront
+6
+Admin receives notification in dashboard: new product awaiting approval
+7
+Admin opens the product review screen and inspects all content, images, pricing, and SEO
+8
+Admin APPROVES → product status changes to APPROVED; Admin can publish immediately or schedule
+8
+Admin REJECTS → product status returns to REJECTED with admin comment; employee is notified
+9
+Employee corrects the rejected product and resubmits — the cycle repeats from Step 4
+10
+Approved product is PUBLISHED → appears on the public storefront with full SEO indexing
+
+6.2  Customer Order Workflow
+
+1
+Customer (or visitor) browses the storefront — no login required for browsing
+2
+Customer adds product(s) to cart — cart is persisted in the database for logged-in users
+3
+Customer clicks Checkout — system checks authentication status
+4
+If not logged in → redirected to Login / Register page, then returned to checkout after authentication
+5
+Customer selects a saved address or enters a new delivery address
+6
+Order summary page displays: items, quantities, pricing breakdown, delivery address
+7
+Customer confirms and places the order
+8
+System: creates order record, locks in pricing snapshot, deducts stock, clears cart
+9
+System: triggers order confirmation email to customer with full order details
+10
+Admin dashboard reflects new order — team processes fulfillment
+11
+Admin updates order status: Confirmed → Dispatched → Delivered (each step triggers email)
+
+6.3  User Registration & Login Workflow
+
+1
+User opens Registration form — enters name, email, and password
+2
+System validates input, hashes password, creates user record with isVerified: false
+3
+System sends email verification link to the provided email address
+4
+User clicks link → system marks isVerified: true and activates the account
+5
+User logs in with email and password — system validates credentials
+6
+System issues Access Token (short-lived) and Refresh Token (long-lived, HttpOnly cookie)
+7
+Access Token is used for all authenticated API requests in the session
+8
+On token expiry → client uses Refresh Token to silently obtain a new Access Token
+9
+Logout → system invalidates Refresh Token; user must re-authenticate
+
+6.4  Email Notification Workflow
+
+1
+Triggering event occurs: order placed, status updated, cancellation, etc.
+2
+Backend Notification Service receives the event with user ID and order ID
+3
+Service fetches customer data, order data, and selects the correct email template
+4
+Email is compiled: brand logo, order number, customer name, items, address, support info
+5
+Email is sent via Transactional Email Provider (SendGrid / Mailgun / SES)
+6
+Notification record is created in the notifications collection (emailSent: true)
+7
+In-app notification is also created for the customer's account notification center
+8
+Failed sends are queued for retry — admin can view email logs in the dashboard
+
+SECTION 7 — SEO ARCHITECTURE
+
+SEO is a first-class concern. Every public-facing page is designed for search engine indexability from day one.
+
+Technical SEO
+▸  Server-side rendering (Next.js SSR/SSG)
+▸  Clean URL structure: /category/slug, /product/slug
+▸  Canonical URLs on all public pages
+▸  Auto-generated XML sitemap
+▸  Configurable robots.txt
+▸  Breadcrumb schema markup
+▸  Product schema (name, price, availability, rating)
+▸  Organization schema on brand pages
+▸  Image alt text on all product images
+▸  Lazy loading for non-critical assets
+▸  Fast mobile loading: Core Web Vitals optimized
+
+On-Page SEO
+▸  Unique title tag per product, category, content page
+▸  Unique meta description per page
+▸  One clear H1 per page
+▸  Structured subheadings (H2, H3)
+▸  Internal linking between categories and products
+▸  Readable content blocks with keyword integration
+▸  FAQ sections on category and landing pages
+▸  Admin-editable SEO copy via CMS-style SEO panel
+
+SECTION 8 — SECURITY & PERFORMANCE
+
+8.1  Security
+
+Authentication Security
+▸  bcrypt password hashing (min cost factor 10)
+▸  JWT access tokens (15-min expiry)
+▸  Refresh tokens in HttpOnly, Secure cookies
+▸  Email verification before account activation
+▸  Secure password reset via time-limited link
+▸  Role claim embedded in token payload
+
+API & Request Security
+▸  Role-based middleware on all protected routes
+▸  Input validation and sanitization (express-validator)
+▸  Rate limiting on auth and sensitive endpoints
+▸  File upload validation: type, size, count limits
+▸  CSRF protection on state-changing requests
+▸  Audit logging for all critical admin actions
+▸  Customers access only their own data
+
+8.2  Performance
+
+Frontend Performance
+▸  Next.js SSR / SSG for fast initial load
+▸  Image optimization via Next/Image or CDN
+▸  Lazy loading of images and off-screen content
+▸  Code splitting per route
+▸  Loading skeleton states for async content
+▸  Minimal unnecessary re-renders (memoization)
+
+Backend Performance
+▸  MongoDB indexes on: slug, categoryId, status, tags, userId
+▸  Category data cached (Redis or in-memory)
+▸  Pagination on all list endpoints
+▸  Object storage / CDN for all media assets
+▸  Database query projection (return only needed fields)
+▸  Search indexing for fast full-text retrieval
+
+SECTION 9 — FUTURE FEATURES & ROADMAP
+
+The following features are scoped for future releases after the initial platform launch. They are documented here to ensure the current architecture does not block their implementation.
+
+Phase 2 — Enhanced Commerce
+▸  Payment gateway integration: Razorpay / Stripe / PayU with payment verification flow
+▸  Refund and return management module with admin approval
+▸  Discount and coupon code engine with usage limits and expiry
+▸  Loyalty points system: earn on purchase, redeem at checkout
+▸  Product bundles and combo offers
+▸  Flash sale / limited-time offer scheduling
+
+Phase 3 — Discovery & Marketing
+▸  Frequently bought together recommendations (ML-based)
+▸  Recently viewed products (session + account based)
+▸  Personalized homepage based on browse history
+▸  Email marketing integration: newsletters, abandoned cart recovery
+▸  Push notification support (web + mobile)
+▸  Referral program with unique referral links
+▸  Social sharing with OG meta tags per product
+
+Phase 4 — Analytics & Intelligence
+▸  Advanced admin analytics: funnel analysis, conversion rate, revenue by category
+▸  Product performance dashboard: views, add-to-cart rate, conversion
+▸  Customer cohort analysis and lifetime value tracking
+▸  Search analytics: top queries, zero-result queries, click-through rate
+▸  A/B testing framework for homepage and product page layouts
+▸  Inventory forecasting based on sales velocity
+
+Phase 5 — Marketplace & Scale
+▸  Marketplace expansion: multi-vendor onboarding with vendor dashboards
+▸  Mobile app (React Native) with full commerce feature parity
+▸  Marketplace seller approval and commission management
+▸  Warehouse / fulfillment partner integration (3PL)
+▸  Multi-currency and multi-language support
+▸  International shipping and tax calculation
+▸  ERP / accounting system integration
+
+SECTION 10 — TESTING & DEPLOYMENT
+
+10.1  Testing Checklist
+
+Functional Testing
+▸  User registration, email verification, login
+▸  Product creation → submission → approval → publish
+▸  Product rejection → edit → resubmit
+▸  Search: full-text, filters, autocomplete, no-result
+▸  Cart: add, update quantity, remove, clear
+▸  Checkout: guest redirect, address selection, order placement
+▸  Order email: confirm, dispatch, deliver, cancel triggers
+▸  Admin: approve, reject, manage employees, edit SEO
+▸  Role enforcement: all protected endpoints tested
+
+Quality Testing
+▸  Mobile responsiveness (320px → 1440px)
+▸  Page load performance: Core Web Vitals
+▸  SEO metadata output on all page types
+▸  Order record integrity post-placement
+▸  Stock deduction accuracy
+▸  Image upload validation (type, size, count)
+▸  Token expiry and refresh cycle
+▸  Rate limit enforcement on auth endpoints
+▸  Email delivery and template rendering
+
+10.2  Deployment Structure
+
+Frontend
+Vercel or AWS Amplify — Next.js SSR deployment with edge caching
+Backend API
+AWS EC2 / Railway / Render — Node.js containerized with PM2 or Docker
+Database
+MongoDB Atlas (M10+ cluster) with automated backups
+Media Storage
+AWS S3 + CloudFront CDN for image delivery
+Email Service
+SendGrid / AWS SES for transactional emails
+Environment
+Separate .env configs for Development, Staging, and Production
+Monitoring
+Uptime monitoring + error tracking (Sentry / Datadog)
+Backups
+Daily automated MongoDB backups with 30-day retention
+
+LunexAK — Development Document
+This document is confidential and intended solely for the LunexAK development team.

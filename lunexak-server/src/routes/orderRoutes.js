@@ -1,4 +1,5 @@
 const express = require("express");
+const { requireAuth, requireRole } = require("../middleware/authMiddleware");
 
 const {
   createOrder,
@@ -10,15 +11,15 @@ const {
 const router = express.Router();
 
 // Create Order
-router.post("/", createOrder);
+router.post("/", requireAuth, createOrder);
 
 // Get All Orders (Admin)
-router.get("/", getOrders);
+router.get("/", requireAuth, requireRole(["ADMIN"]), getOrders);
 
 // Get Orders Of Specific User
-router.get("/user/:userId", getMyOrders);
+router.get("/user/:userId", requireAuth, getMyOrders);
 
 // Update Order Status
-router.put("/:id", updateOrderStatus);
+router.put("/:id", requireAuth, requireRole(["ADMIN"]), updateOrderStatus);
 
 module.exports = router;
