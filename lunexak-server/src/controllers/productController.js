@@ -1,4 +1,9 @@
 const Product = require("../models/Product");
+const mongoose = require("mongoose");
+
+const isValidProductId = (id) =>
+  typeof id === "string" &&
+  mongoose.Types.ObjectId.isValid(id);
 
 // CREATE PRODUCT
 const createProduct = async (req, res) => {
@@ -38,6 +43,13 @@ const getProducts = async (req, res) => {
 // GET SINGLE PRODUCT
 const getSingleProduct = async (req, res) => {
   try {
+    if (!isValidProductId(req.params.id)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid Product ID",
+      });
+    }
+
     const product = await Product.findById(
       req.params.id
     );
@@ -64,6 +76,13 @@ const getSingleProduct = async (req, res) => {
 // UPDATE PRODUCT
 const updateProduct = async (req, res) => {
   try {
+    if (!isValidProductId(req.params.id)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid Product ID",
+      });
+    }
+
     const product = await Product.findByIdAndUpdate(
       req.params.id,
       req.body,
@@ -94,6 +113,13 @@ const updateProduct = async (req, res) => {
 // DELETE PRODUCT
 const deleteProduct = async (req, res) => {
   try {
+    if (!isValidProductId(req.params.id)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid Product ID",
+      });
+    }
+
     const product = await Product.findById(
       req.params.id
     );

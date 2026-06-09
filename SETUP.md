@@ -33,7 +33,7 @@ cd ../lunexak-server
 cp .env.example .env
 ```
 
-Update `.env` with your values. The current database code reads `MONGO_URI`, so make sure your file includes it:
+Update `.env` with your values. The server accepts either `MONGO_URI` or `MONGODB_URI` for the MongoDB connection string:
 
 ```env
 PORT=5000
@@ -44,7 +44,7 @@ JWT_REFRESH_SECRET=replace_with_another_long_random_secret
 CORS_ORIGIN=http://localhost:3000
 ```
 
-If you keep the `MONGODB_URI` name from `.env.example`, also add `MONGO_URI` or update `lunexak-server/src/config/db.js` to read `MONGODB_URI`.
+If you keep the `MONGODB_URI` name from `.env.example`, the server will use that value automatically.
 
 ## 3. Configure the Client
 
@@ -109,4 +109,3 @@ git rm --cached lunexak-server/.env
 ```
 
 Only run those commands if the files are currently tracked or staged.
-
