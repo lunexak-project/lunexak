@@ -2,6 +2,9 @@ const User = require("../models/User");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const { generateAccessToken, generateRefreshToken } = require("../utils/generateTokens");
+const { OAuth2Client } = require('google-auth-library');
+
+const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID || 'mock_client_id_for_dev');
 
 const registerUser = async (req, res) => {
   try {
@@ -19,8 +22,8 @@ const registerUser = async (req, res) => {
       name,
       email,
       passwordHash,
-      role: "CUSTOMER",
-      isVerified: false,
+      role: "customer",
+      isVerified: true, // Auto-verify — email verification not implemented yet
     });
 
     res.status(201).json({
@@ -118,10 +121,83 @@ const verifyEmail = async (req, res) => {
   }
 };
 
+const googleLogin = async (req, res) => {
+  try {
+    const { token, isMock } = req.body;
+    let payload;
+
+    if (isMock) {
+      // Temporary mock flow for development
+      payload = {
+        email: "google.user@example.com",
+        name: "Google Test User",
+        email_verified: true
+      };
+    } else {
+      const ticket = await client.verifyIdToken({
+          idToken: token,
+          audience: process.env.GOOGLE_CLIENT_ID,
+      });
+      payload = ticket.getPayload();
+    }
+
+    const { email, name, email_verified } = payload;
+
+    if (!email_verified && !isMock) {
+      return res.status(401).json({ success: false, message: "Google email not verified." });
+    }
+
+    let user = await User.findOne({ email });
+
+    if (!user) {
+      // Auto-register
+      const randomPassword = Math.random().toString(36).slice(-8) + Math.random().toString(36).slice(-8);
+      const passwordHash = await bcrypt.hash(randomPassword, 10);
+      user = await User.create({
+        name,
+        email,
+        passwordHash,
+        role: "customer",
+        isVerified: true,
+      });
+    }
+
+    if (!user.isActive) {
+      return res.status(403).json({ success: false, message: "Account is inactive" });
+    }
+
+    const accessToken = generateAccessToken(user._id, user.role);
+    const refreshToken = generateRefreshToken(user._id);
+
+    res.cookie("refreshToken", refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
+
+    res.status(200).json({
+      success: true,
+      message: "Google Login Successful",
+      accessToken,
+      user: {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        isVerified: user.isVerified,
+      },
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
 module.exports = {
   registerUser,
   loginUser,
   logoutUser,
   refreshTokenHandler,
   verifyEmail,
+  googleLogin
 };

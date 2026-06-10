@@ -7,23 +7,28 @@ const {
   getSingleProduct,
   updateProduct,
   deleteProduct,
+  submitProduct,
+  approveProduct,
+  rejectProduct,
+  publishProduct,
 } = require("../controllers/productController");
 
 const router = express.Router();
 
-router.post("/", requireAuth, requireRole(["ADMIN", "EMPLOYEE"]), createProduct);
+router.post("/", requireAuth, requireRole(["admin", "employee"]), createProduct);
 
 router.get("/", getProducts);
 
 router.get("/:id", getSingleProduct);
 
-router.put("/:id", requireAuth, requireRole(["ADMIN"]), updateProduct);
+router.put("/:id", requireAuth, requireRole(["admin", "employee"]), updateProduct);
 
-router.delete("/:id", requireAuth, requireRole(["ADMIN"]), deleteProduct);
+router.delete("/:id", requireAuth, requireRole(["admin"]), deleteProduct);
 
 // PRD specific endpoints for workflow
-// router.post("/:id/submit", requireAuth, requireRole(["EMPLOYEE"]), submitProduct);
-// router.post("/:id/approve", requireAuth, requireRole(["ADMIN"]), approveProduct);
-// router.post("/:id/publish", requireAuth, requireRole(["ADMIN"]), publishProduct);
+router.post("/:id/submit", requireAuth, requireRole(["employee", "admin"]), submitProduct);
+router.post("/:id/approve", requireAuth, requireRole(["admin"]), approveProduct);
+router.post("/:id/reject", requireAuth, requireRole(["admin"]), rejectProduct);
+router.post("/:id/publish", requireAuth, requireRole(["admin"]), publishProduct);
 
 module.exports = router;

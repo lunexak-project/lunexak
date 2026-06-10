@@ -14,12 +14,12 @@ const router = express.Router();
 router.post("/", requireAuth, createOrder);
 
 // Get All Orders (Admin)
-router.get("/", requireAuth, requireRole(["ADMIN"]), getOrders);
+router.get("/", requireAuth, requireRole(["admin"]), getOrders);
 
 // Get Orders Of Specific User
 router.get("/user/:userId", requireAuth, getMyOrders);
 
 // Update Order Status
-router.put("/:id", requireAuth, requireRole(["ADMIN"]), updateOrderStatus);
+router.put("/:id", requireAuth, requireRole(["admin"]), updateOrderStatus);
 
 module.exports = router;

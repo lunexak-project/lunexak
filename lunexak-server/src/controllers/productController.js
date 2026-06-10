@@ -8,7 +8,17 @@ const isValidProductId = (id) =>
 // CREATE PRODUCT
 const createProduct = async (req, res) => {
   try {
-    const product = await Product.create(req.body);
+    const productData = { ...req.body };
+    if (req.user) {
+      productData.createdBy = req.user._id;
+    }
+    
+    // Always start as draft if not explicitly set by admin
+    if (!productData.status || req.user?.role === "employee") {
+      productData.status = "DRAFT";
+    }
+
+    const product = await Product.create(productData);
 
     res.status(201).json({
       success: true,
@@ -25,7 +35,30 @@ const createProduct = async (req, res) => {
 // GET ALL PRODUCTS
 const getProducts = async (req, res) => {
   try {
-    const products = await Product.find();
+    const { status, category, limit, sort, createdBy } = req.query;
+    
+    // Build query
+    let query = {};
+    if (status) query.status = status;
+    if (category) query.category = category;
+    if (createdBy) query.createdBy = createdBy;
+
+    let mongooseQuery = Product.find(query);
+
+    // Sort
+    if (sort) {
+      const sortBy = sort.split(',').join(' ');
+      mongooseQuery = mongooseQuery.sort(sortBy);
+    } else {
+      mongooseQuery = mongooseQuery.sort('-createdAt');
+    }
+
+    // Pagination/Limit
+    if (limit) {
+      mongooseQuery = mongooseQuery.limit(parseInt(limit, 10));
+    }
+
+    const products = await mongooseQuery;
 
     res.status(200).json({
       success: true,
@@ -131,6 +164,8 @@ const deleteProduct = async (req, res) => {
       });
     }
 
+
+
     await product.deleteOne();
 
     res.status(200).json({
@@ -145,10 +180,98 @@ const deleteProduct = async (req, res) => {
   }
 };
 
+// SUBMIT PRODUCT (Employee)
+const submitProduct = async (req, res) => {
+  try {
+    if (!isValidProductId(req.params.id)) return res.status(400).json({ success: false, message: "Invalid ID" });
+    const product = await Product.findByIdAndUpdate(req.params.id, { status: "PENDING" }, { new: true });
+    if (!product) return res.status(404).json({ success: false, message: "Not Found" });
+    res.status(200).json({ success: true, message: "Product submitted for review", product });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// APPROVE PRODUCT (Admin)
+const approveProduct = async (req, res) => {
+  try {
+    if (!isValidProductId(req.params.id)) return res.status(400).json({ success: false, message: "Invalid ID" });
+    const product = await Product.findByIdAndUpdate(req.params.id, { status: "APPROVED", adminComment: "" }, { new: true });
+    if (!product) return res.status(404).json({ success: false, message: "Not Found" });
+    
+    const Approval = require("../models/Approval");
+    await Approval.create({ productId: product._id, adminId: req.user._id, action: "APPROVED" });
+    
+    if (product.createdBy) {
+      const Notification = require("../models/Notification");
+      await Notification.create({
+        user: product.createdBy,
+        message: `Your product "${product.title}" has been approved.`,
+        type: "SUCCESS",
+        actionUrl: `/product/${product._id}`
+      });
+    }
+    
+    res.status(200).json({ success: true, message: "Product approved", product });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// REJECT PRODUCT (Admin)
+const rejectProduct = async (req, res) => {
+  try {
+    const { comment } = req.body;
+    if (!isValidProductId(req.params.id)) return res.status(400).json({ success: false, message: "Invalid ID" });
+    const product = await Product.findByIdAndUpdate(req.params.id, { status: "REJECTED", adminComment: comment }, { new: true });
+    if (!product) return res.status(404).json({ success: false, message: "Not Found" });
+    
+    const Approval = require("../models/Approval");
+    await Approval.create({ productId: product._id, adminId: req.user._id, action: "REJECTED", comment });
+    
+    if (product.createdBy) {
+      const Notification = require("../models/Notification");
+      await Notification.create({
+        user: product.createdBy,
+        message: `Your product "${product.title}" was rejected. Reason: ${comment || 'No comment provided.'}`,
+        type: "ERROR"
+      });
+    }
+    
+    res.status(200).json({ success: true, message: "Product rejected", product });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// PUBLISH PRODUCT (Admin)
+const publishProduct = async (req, res) => {
+  try {
+    if (!isValidProductId(req.params.id)) return res.status(400).json({ success: false, message: "Invalid ID" });
+    const product = await Product.findById(req.params.id);
+    if (!product) return res.status(404).json({ success: false, message: "Not Found" });
+    if (product.status !== "APPROVED") return res.status(400).json({ success: false, message: "Product must be approved first" });
+    
+    product.status = "LIVE";
+    await product.save();
+    
+    const Approval = require("../models/Approval");
+    await Approval.create({ productId: product._id, adminId: req.user._id, action: "PUBLISHED" });
+    
+    res.status(200).json({ success: true, message: "Product published", product });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
 module.exports = {
   createProduct,
   getProducts,
   getSingleProduct,
   updateProduct,
   deleteProduct,
+  submitProduct,
+  approveProduct,
+  rejectProduct,
+  publishProduct,
 };

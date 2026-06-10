@@ -7,6 +7,6 @@ const {
 
 const router = express.Router();
 
-router.get("/", requireAuth, requireRole(["ADMIN"]), getDashboardStats);
+router.get("/", requireAuth, requireRole(["admin"]), getDashboardStats);
 
 module.exports = router;
