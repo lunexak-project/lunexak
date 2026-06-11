@@ -8,11 +8,17 @@ const productSchema = new mongoose.Schema(
     price: { type: Number, required: true },
     compareAtPrice: { type: Number },
     category: { type: String, default: "Uncategorized" },
+    subCategory: { type: String, default: "" },
     brand: { type: String },
 
     // Variants
     sizes: [{ type: String }],       // e.g. ["S","M","L","XL"]
-    colors: [{ type: String }],      // e.g. ["Red","Black","White"]
+    colors: [
+      {
+        name: { type: String },        // Red
+        hex: { type: String },         // #FF0000
+      }
+    ],
 
     // Images
     images: [
