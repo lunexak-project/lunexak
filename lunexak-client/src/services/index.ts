@@ -117,8 +117,8 @@ export const orderService = {
     return data;
   },
 
-  getMyOrders: async (userId: string) => {
-    const { data } = await api.get(`/orders/user/${userId}`);
+  getMyOrders: async () => {
+    const { data } = await api.get("/orders/my");
     return data;
   },
 
@@ -131,10 +131,6 @@ export const orderService = {
     const { data } = await api.put(`/orders/${id}`, { status });
     return data;
   },
-  getMyOrders: async (userId: string) => {
-    const { data } = await api.get(`/orders/user/${userId}`);
-    return data;
-  }
 };
 
 export const searchService = {

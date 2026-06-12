@@ -16,7 +16,10 @@ router.post("/", requireAuth, createOrder);
 // Get All Orders (Admin)
 router.get("/", requireAuth, requireRole(["admin"]), getOrders);
 
-// Get Orders Of Specific User
+// Get Orders Of Logged-In User
+router.get("/my", requireAuth, getMyOrders);
+
+// Get Orders Of Specific User (kept for backward compat)
 router.get("/user/:userId", requireAuth, getMyOrders);
 
 // Update Order Status

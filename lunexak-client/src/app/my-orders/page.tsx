@@ -20,7 +20,7 @@ export default function MyOrdersPage() {
     }
     
     if (user) {
-      orderService.getMyOrders(user._id)
+      orderService.getMyOrders()
         .then((res) => {
           // Sort by newest first
           const sorted = (res.orders || []).sort((a: any, b: any) => 
