@@ -9,9 +9,15 @@ type ProductFormProps = {
   initialData?: any;
   onSubmit: (data: any) => Promise<void>;
   isSubmitting: boolean;
+  submitLabel?: string;
 };
 
-export default function ProductForm({ initialData, onSubmit, isSubmitting }: ProductFormProps) {
+export default function ProductForm({
+  initialData,
+  onSubmit,
+  isSubmitting,
+  submitLabel = "Save Product Draft",
+}: ProductFormProps) {
   const [formData, setFormData] = useState({
     title: initialData?.title || "",
     description: initialData?.description || "",
@@ -26,10 +32,16 @@ export default function ProductForm({ initialData, onSubmit, isSubmitting }: Pro
     stock: initialData?.stock || 0,
     seoTitle: initialData?.seoTitle || "",
     seoDescription: initialData?.seoDescription || "",
+    isTrending: initialData?.isTrending || false,
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value, type } = e.target;
+    if (type === "checkbox") {
+      setFormData({ ...formData, [name]: (e.target as HTMLInputElement).checked });
+    } else {
+      setFormData({ ...formData, [name]: value });
+    }
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -285,6 +297,20 @@ export default function ProductForm({ initialData, onSubmit, isSubmitting }: Pro
               placeholder="Short description for search results"
             />
           </div>
+          
+          <div className="flex items-center gap-3 pt-2">
+            <input
+              type="checkbox"
+              id="isTrending"
+              name="isTrending"
+              checked={formData.isTrending}
+              onChange={handleChange}
+              className="w-5 h-5 accent-black rounded cursor-pointer"
+            />
+            <label htmlFor="isTrending" className="text-sm font-bold text-gray-700 cursor-pointer">
+              Mark as Trending Product
+            </label>
+          </div>
         </div>
       </div>
 
@@ -295,7 +321,14 @@ export default function ProductForm({ initialData, onSubmit, isSubmitting }: Pro
           disabled={isSubmitting}
           className="bg-black text-white px-8 py-4 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-gray-800 transition disabled:opacity-70 disabled:cursor-not-allowed flex-1"
         >
-          {isSubmitting ? "Saving..." : <><Save size={20} /> Save Product Draft</>}
+          {isSubmitting ? (
+            "Saving..."
+          ) : (
+            <>
+              <Save size={20} />
+              {submitLabel}
+            </>
+          )}
         </button>
       </div>
     </form>

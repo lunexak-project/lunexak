@@ -40,15 +40,34 @@ function AdminProductsPage() {
     }
   };
 
-  const handleAction = async (id: string, action: 'submit' | 'approve' | 'reject' | 'publish') => {
+  const handleAction = async (
+    id: string,
+    action: "submit" | "approve" | "reject" | "publish"
+  ) => {
     try {
-      // Note: In a real app you might have distinct service methods for these.
-      // For MVP we will just fetch the products again after an action.
-      alert(`Action ${action} triggered for product ${id}. Check backend logs.`);
-      // Mocking the refresh:
-      fetchProducts();
+      if (action === "submit") {
+        await productService.submit(id);
+      }
+
+      if (action === "approve") {
+        await productService.approve(id);
+      }
+
+      if (action === "reject") {
+        const reason = prompt("Enter rejection reason") || "";
+        await productService.reject(id, reason);
+      }
+
+      if (action === "publish") {
+        await productService.publish(id);
+      }
+
+      await fetchProducts();
+
+      alert(`Product ${action} successful`);
     } catch (error) {
       console.error(error);
+      alert(`Failed to ${action} product`);
     }
   };
 
@@ -66,11 +85,21 @@ function AdminProductsPage() {
 
   return (
     <div className="max-w-7xl mx-auto px-6 py-12">
-      <div className="flex justify-between items-center mb-8">
+      <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Product Management</h1>
-          <p className="text-gray-500 mt-1">Manage your catalog, review drafts, and publish products.</p>
+          <h1 className="text-3xl font-bold text-gray-900">
+            Product Management
+          </h1>
+          <p className="text-gray-500">
+            Manage your catalog, review drafts, and publish products.
+          </p>
         </div>
+
+        <Link href="/admin/products/new">
+          <button className="bg-black text-white px-5 py-2.5 rounded-lg font-medium hover:bg-gray-800 transition">
+            Add Product
+          </button>
+        </Link>
       </div>
 
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">

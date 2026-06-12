@@ -46,7 +46,11 @@ export default function NewProductPage() {
           <p className="text-gray-500 mt-2">Fill in the details below. This will be saved as a draft until you submit it for review.</p>
         </div>
 
-        <ProductForm onSubmit={handleSubmit} isSubmitting={isSubmitting} />
+        <ProductForm
+          onSubmit={handleSubmit}
+          isSubmitting={isSubmitting}
+          submitLabel="Save Product Draft"
+        />
       </div>
     </div>
   );

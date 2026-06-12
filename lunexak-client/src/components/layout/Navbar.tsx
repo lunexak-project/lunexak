@@ -225,7 +225,7 @@ export default function Navbar() {
                         href="/employee/products"
                         className="block px-4 py-2 hover:bg-gray-100"
                       >
-                        My Products
+                        Products
                       </Link>
 
                       <Link

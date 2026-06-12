@@ -18,7 +18,7 @@ export default function TrendingProducts() {
 
   const fetchProducts = async () => {
     try {
-      const res = await productService.getAll({ status: "LIVE", limit: "8" });
+      const res = await productService.getAll({ status: "LIVE", isTrending: "true", limit: "8" });
       setProducts(res.products || res);
     } catch (error) {
       console.error("Error fetching trending products", error);

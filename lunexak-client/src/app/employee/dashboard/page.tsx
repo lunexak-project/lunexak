@@ -92,7 +92,7 @@ export default function EmployeeDashboardPage() {
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-gray-100 pb-6">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 tracking-tight">My Products</h1>
+            <h1 className="text-3xl font-bold text-gray-900 tracking-tight">Products</h1>
             <p className="text-gray-500 mt-2">Manage your drafts and track approval statuses.</p>
           </div>
           <Link 

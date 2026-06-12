@@ -179,3 +179,14 @@ export const notificationService = {
     return data;
   }
 };
+
+export const reviewService = {
+  getProductReviews: async (productId: string) => {
+    const { data } = await api.get(`/reviews/product/${productId}`);
+    return data;
+  },
+  addReview: async (reviewData: { productId: string, rating: number, title: string, body: string }) => {
+    const { data } = await api.post("/reviews", reviewData);
+    return data;
+  }
+};

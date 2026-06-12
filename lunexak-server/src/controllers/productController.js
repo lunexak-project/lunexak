@@ -20,6 +20,23 @@ const createProduct = async (req, res) => {
 
     const product = await Product.create(productData);
 
+    if (product.status === "DRAFT") {
+      const User = require("../models/User");
+      const Notification = require("../models/Notification");
+      const admins = await User.find({ role: "admin" });
+      
+      const notifications = admins.map(admin => ({
+        user: admin._id,
+        message: `Employee saved a new product "${product.title}" as draft.`,
+        type: "INFO",
+        actionUrl: "/admin/products"
+      }));
+
+      if (notifications.length > 0) {
+        await Notification.insertMany(notifications);
+      }
+    }
+
     res.status(201).json({
       success: true,
       product,
@@ -35,13 +52,18 @@ const createProduct = async (req, res) => {
 // GET ALL PRODUCTS
 const getProducts = async (req, res) => {
   try {
-    const { status, category, limit, sort, createdBy } = req.query;
+    const { status, category, subCategory, isTrending, search, limit, sort, createdBy } = req.query;
     
     // Build query
     let query = {};
     if (status) query.status = status;
-    if (category) query.category = category;
+    if (category) query.category = { $regex: new RegExp(`^${category}$`, 'i') };
+    if (subCategory) query.subCategory = { $regex: new RegExp(`^${subCategory}$`, 'i') };
+    if (isTrending === 'true') query.isTrending = true;
     if (createdBy) query.createdBy = createdBy;
+    if (search) {
+      query.title = { $regex: search, $options: "i" };
+    }
 
     let mongooseQuery = Product.find(query);
 
@@ -186,6 +208,23 @@ const submitProduct = async (req, res) => {
     if (!isValidProductId(req.params.id)) return res.status(400).json({ success: false, message: "Invalid ID" });
     const product = await Product.findByIdAndUpdate(req.params.id, { status: "PENDING" }, { new: true });
     if (!product) return res.status(404).json({ success: false, message: "Not Found" });
+
+    // Notify all admins
+    const User = require("../models/User");
+    const Notification = require("../models/Notification");
+    
+    const admins = await User.find({ role: "admin" });
+    const notifications = admins.map(admin => ({
+      user: admin._id,
+      message: `A new product "${product.title}" was submitted for review.`,
+      type: "INFO",
+      actionUrl: "/admin/approvals"
+    }));
+
+    if (notifications.length > 0) {
+      await Notification.insertMany(notifications);
+    }
+
     res.status(200).json({ success: true, message: "Product submitted for review", product });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });

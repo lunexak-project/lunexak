@@ -43,6 +43,8 @@ const productSchema = new mongoose.Schema(
     seoTitle: { type: String },
     seoDescription: { type: String },
     tags: [{ type: String }],
+    
+    isTrending: { type: Boolean, default: false },
 
     // Reviews
     ratingAvg: { type: Number, default: 0 },
