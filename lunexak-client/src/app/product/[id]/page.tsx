@@ -211,16 +211,24 @@ export default function ProductDetailPage() {
                 {availableColors.map((color: any) => {
                   const colorVal = typeof color === "string" ? color : color.name;
                   const colorHex = typeof color === "string" ? color : color.hex || color.name;
+                  const colorImage = typeof color === "string" ? null : color.imageUrl;
                   return (
                     <button
                       key={colorVal}
-                      onClick={() => setSelectedColor(colorVal)}
+                      onClick={() => {
+                        setSelectedColor(colorVal);
+                        if (colorImage) setSelectedImage(colorImage);
+                      }}
                       title={colorVal}
-                      className={`w-8 h-8 rounded-full border-2 transition ${
-                        selectedColor === colorVal ? "border-black scale-110" : "border-gray-200 hover:border-gray-500"
+                      className={`relative w-10 h-10 rounded-full border-2 transition overflow-hidden ${
+                        selectedColor === colorVal ? "border-black scale-110 shadow-md" : "border-gray-200 hover:border-gray-500"
                       }`}
-                      style={{ backgroundColor: colorHex.toLowerCase() }}
-                    />
+                      style={{ backgroundColor: colorImage ? 'transparent' : colorHex.toLowerCase() }}
+                    >
+                      {colorImage && (
+                        <img src={colorImage} alt={colorVal} className="w-full h-full object-cover" />
+                      )}
+                    </button>
                   );
                 })}
               </div>

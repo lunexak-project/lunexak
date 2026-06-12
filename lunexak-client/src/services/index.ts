@@ -131,6 +131,10 @@ export const orderService = {
     const { data } = await api.put(`/orders/${id}`, { status });
     return data;
   },
+  getMyOrders: async (userId: string) => {
+    const { data } = await api.get(`/orders/user/${userId}`);
+    return data;
+  }
 };
 
 export const searchService = {
@@ -190,3 +194,17 @@ export const reviewService = {
     return data;
   }
 };
+
+export const uploadService = {
+  uploadImage: async (file: File) => {
+    const formData = new FormData();
+    formData.append("image", file);
+    const { data } = await api.post("/upload", formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+    return data;
+  }
+};
+

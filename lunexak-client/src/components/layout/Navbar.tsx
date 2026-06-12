@@ -180,6 +180,13 @@ export default function Navbar() {
               {showMenu && (
                 <div className="absolute top-12 right-0 w-56 bg-white border rounded-xl shadow-lg py-2 z-50">
 
+                  <Link
+                    href="/my-orders"
+                    className="block px-4 py-2 hover:bg-gray-100"
+                  >
+                    My Orders
+                  </Link>
+
                   {user.role === "admin" && (
                     <>
                       <Link

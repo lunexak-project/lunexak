@@ -15,8 +15,9 @@ const productSchema = new mongoose.Schema(
     sizes: [{ type: String }],       // e.g. ["S","M","L","XL"]
     colors: [
       {
-        name: { type: String },        // Red
-        hex: { type: String },         // #FF0000
+        name: { type: String },        // e.g. "Black Fade"
+        hex: { type: String },         // e.g. "#000000"
+        imageUrl: { type: String }     // Specific image for this color
       }
     ],
 

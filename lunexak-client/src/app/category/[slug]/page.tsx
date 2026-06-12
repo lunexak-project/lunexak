@@ -6,7 +6,7 @@ import ProductCard from "@/components/ui/ProductCard";
 import { useCart } from "@/context/CartContext";
 import { useWishlist } from "@/context/WishlistContext";
 import { useParams } from "next/navigation";
-import { Search, SlidersHorizontal, X } from "lucide-react";
+import { SlidersHorizontal, Search, X } from "lucide-react";
 
 const SORT_OPTIONS = [
   { label: "Newest First", value: "-createdAt" },
@@ -21,14 +21,14 @@ export default function CategoryPage() {
   const [allProducts, setAllProducts] = useState<any[]>([]);
   const [category, setCategory] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-
-  // Filters
+  
+  // Filter state
   const [activeSubCategory, setActiveSubCategory] = useState("All");
+  const [showFilters, setShowFilters] = useState(false);
   const [search, setSearch] = useState("");
   const [minPrice, setMinPrice] = useState("");
   const [maxPrice, setMaxPrice] = useState("");
   const [sort, setSort] = useState("-createdAt");
-  const [showFilters, setShowFilters] = useState(false);
 
   const { addToCart } = useCart();
   const { addToWishlist } = useWishlist();
@@ -51,29 +51,49 @@ export default function CategoryPage() {
         setCategory({ name: formattedCategory });
       }
 
-      const prodData = await productService.getAll({
+      const queryParams: any = {
         category: formattedCategory,
         status: "LIVE",
-        sort,
-      });
+        sort
+      };
 
-      setAllProducts(prodData.products || prodData);
+      if (search) queryParams.search = search;
+      if (minPrice) queryParams.minPrice = minPrice;
+      if (maxPrice) queryParams.maxPrice = maxPrice;
+
+      const prodData = await productService.getAll(queryParams);
+      let result = prodData.products || prodData;
+
+      // Client-side price filter as fallback
+      if (minPrice) result = result.filter((p: any) => p.price >= Number(minPrice));
+      if (maxPrice) result = result.filter((p: any) => p.price <= Number(maxPrice));
+
+      setAllProducts(result);
     } catch (error) {
       console.error(error);
     } finally {
       setLoading(false);
     }
-  }, [slug, formattedCategory, sort]);
+  }, [slug, formattedCategory, search, minPrice, maxPrice, sort]);
 
   useEffect(() => {
-    setActiveSubCategory("All");
+    const delay = setTimeout(() => {
+      fetchData();
+    }, 300); // Debounce
+    return () => clearTimeout(delay);
+  }, [fetchData]);
+
+  const clearFilters = () => {
     setSearch("");
     setMinPrice("");
     setMaxPrice("");
-    fetchData();
-  }, [fetchData]);
+    setSort("-createdAt");
+    setActiveSubCategory("All");
+  };
 
-  // Unique subcategories from products
+  const hasActiveFilters = search || minPrice || maxPrice || sort !== "-createdAt" || activeSubCategory !== "All";
+
+  // Unique subcategories from products (ignore search/price filtering for generating pills)
   const subCategories = useMemo(() => {
     const subs = allProducts
       .map((p) => p.subCategory)
@@ -81,71 +101,30 @@ export default function CategoryPage() {
     return ["All", ...Array.from(new Set<string>(subs))];
   }, [allProducts]);
 
-  // Client-side filtering: subcategory + search + price
+  // Filter by subcategory locally
   const products = useMemo(() => {
-    let filtered = allProducts;
-
-    if (activeSubCategory !== "All") {
-      filtered = filtered.filter(
-        (p) => p.subCategory?.toLowerCase() === activeSubCategory.toLowerCase()
-      );
-    }
-
-    if (search.trim()) {
-      filtered = filtered.filter((p) =>
-        p.title.toLowerCase().includes(search.toLowerCase())
-      );
-    }
-
-    if (minPrice) filtered = filtered.filter((p) => p.price >= Number(minPrice));
-    if (maxPrice) filtered = filtered.filter((p) => p.price <= Number(maxPrice));
-
-    return filtered;
-  }, [allProducts, activeSubCategory, search, minPrice, maxPrice]);
-
-  const hasActiveFilters = search || minPrice || maxPrice || activeSubCategory !== "All" || sort !== "-createdAt";
-
-  const clearFilters = () => {
-    setSearch("");
-    setMinPrice("");
-    setMaxPrice("");
-    setActiveSubCategory("All");
-    setSort("-createdAt");
-  };
-
-  if (loading) {
-    return (
-      <div className="max-w-7xl mx-auto px-6 py-12">
-        <div className="h-10 w-48 bg-gray-200 rounded animate-pulse mb-4" />
-        <div className="flex gap-3 mb-8">
-          {[...Array(4)].map((_, i) => (
-            <div key={i} className="h-9 w-24 bg-gray-100 rounded-full animate-pulse" />
-          ))}
-        </div>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-          {[...Array(8)].map((_, i) => (
-            <div key={i} className="bg-gray-100 rounded-2xl h-80 animate-pulse" />
-          ))}
-        </div>
-      </div>
+    if (activeSubCategory === "All") return allProducts;
+    return allProducts.filter(
+      (p) => p.subCategory?.toLowerCase() === activeSubCategory.toLowerCase()
     );
-  }
+  }, [allProducts, activeSubCategory]);
 
   return (
     <div className="max-w-7xl mx-auto px-6 py-12">
-      {/* Header row */}
-      <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-6 gap-4">
+      {/* Header */}
+      <div className="flex flex-col md:flex-row md:items-end justify-between mb-8 gap-4">
         <div>
           <h1 className="text-4xl font-bold capitalize">{category?.name || formattedCategory}</h1>
           {category?.description && (
-            <p className="text-gray-500 mt-1">{category.description}</p>
+            <p className="text-gray-500 mt-2">{category.description}</p>
           )}
           <p className="text-sm text-gray-400 mt-1">
             {products.length} product{products.length !== 1 ? "s" : ""}
           </p>
         </div>
 
-        <div className="flex items-center gap-3 flex-shrink-0">
+        {/* Filter Controls Toggle */}
+        <div className="flex items-center gap-3">
           <button
             onClick={() => setShowFilters(!showFilters)}
             className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold border-2 transition ${
@@ -157,7 +136,9 @@ export default function CategoryPage() {
             <SlidersHorizontal size={16} />
             Filters
             {hasActiveFilters && (
-              <span className="bg-white text-black w-5 h-5 rounded-full text-xs flex items-center justify-center font-bold">!</span>
+              <span className="bg-white text-black w-5 h-5 rounded-full text-xs flex items-center justify-center font-bold">
+                !
+              </span>
             )}
           </button>
 
@@ -173,10 +154,10 @@ export default function CategoryPage() {
         </div>
       </div>
 
-      {/* Expandable Filter Panel */}
+      {/* Filter Panel */}
       {showFilters && (
-        <div className="bg-gray-50 rounded-2xl border border-gray-200 p-6 mb-6">
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 items-end">
+        <div className="bg-gray-50 rounded-2xl border border-gray-200 p-6 mb-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5 items-end">
             {/* Search */}
             <div>
               <label className="text-xs font-bold text-gray-600 uppercase tracking-wide mb-2 block">Search</label>
@@ -203,7 +184,7 @@ export default function CategoryPage() {
                   min="0"
                   className="w-full px-3 py-2.5 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-black"
                 />
-                <span className="text-gray-400 flex-shrink-0">–</span>
+                <span className="text-gray-400">–</span>
                 <input
                   type="number"
                   value={maxPrice}
@@ -222,7 +203,7 @@ export default function CategoryPage() {
                   onClick={clearFilters}
                   className="flex items-center gap-2 px-4 py-2.5 bg-white border-2 border-gray-300 rounded-xl text-sm font-semibold text-gray-700 hover:border-red-400 hover:text-red-500 transition w-full justify-center"
                 >
-                  <X size={14} /> Clear All Filters
+                  <X size={14} /> Clear Filters
                 </button>
               )}
             </div>
@@ -250,10 +231,16 @@ export default function CategoryPage() {
       )}
 
       {/* Product Grid */}
-      {products.length === 0 ? (
+      {loading ? (
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6">
+          {[...Array(8)].map((_, i) => (
+            <div key={i} className="bg-gray-100 rounded-2xl h-80 animate-pulse" />
+          ))}
+        </div>
+      ) : products.length === 0 ? (
         <div className="text-center py-24 text-gray-500">
           <p className="text-2xl mb-2">No products found</p>
-          <p className="text-sm text-gray-400">Try adjusting your filters</p>
+          <p className="text-sm text-gray-400">Try adjusting your filters or category.</p>
           {hasActiveFilters && (
             <button onClick={clearFilters} className="mt-4 text-black underline font-semibold text-sm">
               Clear filters
