@@ -6,6 +6,7 @@ import React, {
   useEffect,
   useState,
 } from "react";
+import { useAuth } from "@/context/AuthContext";
 
 type CartItem = {
   id: string;
@@ -39,21 +40,26 @@ export function CartProvider({
   children: React.ReactNode;
 }) {
   const [cart, setCart] = useState<CartItem[]>([]);
+  const { user } = useAuth();
+  
+  const cartKey = user ? `cart_${user._id}` : "cart_guest";
 
   useEffect(() => {
-    const storedCart = localStorage.getItem("cart");
+    const storedCart = localStorage.getItem(cartKey);
 
     if (storedCart) {
       setCart(JSON.parse(storedCart));
+    } else {
+      setCart([]); // Clear cart if switching to a new user without a cart
     }
-  }, []);
+  }, [cartKey]);
 
   useEffect(() => {
     localStorage.setItem(
-      "cart",
+      cartKey,
       JSON.stringify(cart)
     );
-  }, [cart]);
+  }, [cart, cartKey]);
 
   const addToCart = (product: CartItem) => {
     const existingProduct = cart.find(
