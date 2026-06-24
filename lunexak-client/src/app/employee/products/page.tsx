@@ -12,8 +12,9 @@ export default function EmployeeProductsPage() {
   const [loading, setLoading] = useState(true);
 
   const fetchProducts = async () => {
+    if (!user?._id) return;
     try {
-      const data = await productService.getAll({ createdBy: user?._id });
+      const data = await productService.getAll({ createdBy: user._id });
       const myProducts = data.products || data;
 
       setProducts(myProducts);
@@ -25,8 +26,10 @@ export default function EmployeeProductsPage() {
   };
 
   useEffect(() => {
-    fetchProducts();
-  }, []);
+    if (user?._id) {
+      fetchProducts();
+    }
+  }, [user?._id]);
 
   const handleSubmitForReview = async (id: string) => {
     try {
