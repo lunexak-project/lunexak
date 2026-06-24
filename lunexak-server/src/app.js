@@ -13,6 +13,8 @@ const wishlistRoutes = require("./routes/wishlistRoutes");
 const searchRoutes = require("./routes/searchRoutes");
 const notificationRoutes = require("./routes/notificationRoutes");
 const uploadRoutes = require("./routes/uploadRoutes");
+const seoRoutes = require("./routes/seoRoutes");
+const bannerRoutes = require("./routes/bannerRoutes");
 
 const app = express();
 
@@ -32,5 +34,7 @@ app.use("/api/wishlist", wishlistRoutes);
 app.use("/api/search", searchRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/upload", uploadRoutes);
+app.use("/api/seo", seoRoutes);
+app.use("/api/banners", bannerRoutes);
 
 module.exports = app;

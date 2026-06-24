@@ -2,8 +2,9 @@
 
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
+import { bannerService } from "@/services";
 
-const slides = [
+const defaultSlides = [
   {
     tag: "New Season Collection",
     headline: "Dress to\nImpress",
@@ -39,18 +40,50 @@ const slides = [
   },
 ];
 
+const bgOptions = [
+  "from-[#0f0c29] via-[#302b63] to-[#24243e]",
+  "from-[#1a1a2e] via-[#16213e] to-[#0f3460]",
+  "from-[#134e5e] via-[#71b280] to-[#134e5e]"
+];
+
 export default function HeroSection() {
   const router = useRouter();
   const [current, setCurrent] = useState(0);
+  const [slides, setSlides] = useState(defaultSlides);
+
+  useEffect(() => {
+    const fetchBanners = async () => {
+      try {
+        const res = await bannerService.getActive();
+        if (res.banners && res.banners.length > 0) {
+          const dynamicSlides = res.banners.map((b: any, index: number) => ({
+            tag: b.tag || "Featured Collection",
+            headline: b.title.replace(" ", "\n"), // keep the visual split
+            sub: b.sub || "Explore our latest curated collections.",
+            cta: b.cta || "Shop Now",
+            ctaLink: b.linkUrl || "/products",
+            secondary: b.secondary || "View All",
+            secondaryLink: b.secondaryLink || "/products",
+            bg: b.bg || bgOptions[index % bgOptions.length],
+            image: b.imageUrl,
+          }));
+          setSlides(dynamicSlides);
+        }
+      } catch (err) {
+        console.error("Failed to fetch banners", err);
+      }
+    };
+    fetchBanners();
+  }, []);
 
   useEffect(() => {
     const timer = setInterval(() => {
       setCurrent((prev) => (prev + 1) % slides.length);
     }, 5000);
     return () => clearInterval(timer);
-  }, []);
+  }, [slides.length]);
 
-  const slide = slides[current];
+  const slide = slides[current] || defaultSlides[0];
 
   return (
     <section
@@ -112,7 +145,7 @@ export default function HeroSection() {
             <img
               key={current}
               src={slide.image}
-              alt="Fashion"
+              alt={slide.headline}
               className="w-full h-full object-cover animate-fadeIn"
               style={{ animation: "fadeIn 0.8s ease" }}
             />

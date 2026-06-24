@@ -16,6 +16,16 @@ export const authService = {
     return data;
   },
 
+  forgotPassword: async (email: string) => {
+    const { data } = await api.post("/auth/forgot-password", { email });
+    return data;
+  },
+
+  resetPassword: async (token: string, password: string) => {
+    const { data } = await api.post("/auth/reset-password", { token, password });
+    return data;
+  },
+
   logout: async () => {
     try {
       await api.post("/auth/logout");
@@ -80,6 +90,31 @@ export const categoryService = {
 
   getBySlug: async (slug: string) => {
     const { data } = await api.get(`/categories/${slug}`);
+    return data;
+  },
+
+  create: async (categoryData: any) => {
+    const { data } = await api.post("/categories", categoryData);
+    return data;
+  },
+
+  update: async (id: string, categoryData: any) => {
+    const { data } = await api.put(`/categories/${id}`, categoryData);
+    return data;
+  },
+
+  delete: async (id: string) => {
+    const { data } = await api.delete(`/categories/${id}`);
+    return data;
+  },
+
+  updateStatus: async (id: string, isActive: boolean) => {
+    const { data } = await api.patch(`/categories/${id}/status`, { isActive });
+    return data;
+  },
+
+  updateFeatured: async (id: string, isFeatured: boolean) => {
+    const { data } = await api.patch(`/categories/${id}/featured`, { isFeatured });
     return data;
   },
 };
@@ -200,6 +235,56 @@ export const uploadService = {
         "Content-Type": "multipart/form-data",
       },
     });
+    return data;
+  }
+};
+
+export const seoService = {
+  getAll: async () => {
+    const { data } = await api.get("/seo/pages");
+    return data;
+  },
+  getByPageType: async (type: string, slug: string) => {
+    const { data } = await api.get(`/seo/page/${type}/${slug}`);
+    return data;
+  },
+  update: async (type: string, slug: string, seoData: any) => {
+    const { data } = await api.put(`/seo/page/${type}/${slug}`, seoData);
+    return data;
+  },
+  delete: async (id: string) => {
+    const { data } = await api.delete(`/seo/page/${id}`);
+    return data;
+  },
+  getRobotsTxt: async () => {
+    const { data } = await api.get("/seo/robots.txt");
+    return data;
+  },
+  updateRobotsTxt: async (content: string) => {
+    const { data } = await api.put("/seo/robots", { content });
+    return data;
+  }
+};
+
+export const bannerService = {
+  getAll: async () => {
+    const { data } = await api.get("/banners/admin/all");
+    return data;
+  },
+  getActive: async () => {
+    const { data } = await api.get("/banners");
+    return data;
+  },
+  create: async (bannerData: any) => {
+    const { data } = await api.post("/banners", bannerData);
+    return data;
+  },
+  update: async (id: string, bannerData: any) => {
+    const { data } = await api.put(`/banners/${id}`, bannerData);
+    return data;
+  },
+  delete: async (id: string) => {
+    const { data } = await api.delete(`/banners/${id}`);
     return data;
   }
 };

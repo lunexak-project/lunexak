@@ -216,6 +216,20 @@ export default function Navbar() {
                       >
                         Approvals
                       </Link>
+
+                      <Link
+                        href="/admin/banners"
+                        className="block px-4 py-2 hover:bg-gray-100"
+                      >
+                        Banners
+                      </Link>
+
+                      <Link
+                        href="/admin/seo"
+                        className="block px-4 py-2 hover:bg-gray-100"
+                      >
+                        SEO
+                      </Link>
                     </>
                   )}
 
@@ -240,6 +254,13 @@ export default function Navbar() {
                         className="block px-4 py-2 hover:bg-gray-100"
                       >
                         Notifications
+                      </Link>
+
+                      <Link
+                        href="/admin/banners"
+                        className="block px-4 py-2 hover:bg-gray-100"
+                      >
+                        Banners
                       </Link>
                     </>
                   )}

@@ -1,13 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import axios from "axios";
 import ProductCard from "../ui/ProductCard";
 import { useSearch } from "@/context/SearchContext";
+import { productService } from "@/services";
 
 type SearchProduct = {
   _id: string;
-  name?: string;
+  title?: string;
   category?: string;
   brand?: string;
   price: number;
@@ -35,11 +35,8 @@ export default function SearchResults() {
 
     const fetchProducts = async () => {
       try {
-        const res = await axios.get(
-          "http://localhost:5000/api/products"
-        );
-
-        setProducts(res.data.products);
+        const res = await productService.getAll({ status: "LIVE" });
+        setProducts(res.products);
       } catch (error) {
         console.error(error);
       }
@@ -54,14 +51,14 @@ export default function SearchResults() {
   if (searchTerm.trim()) {
     filteredProducts = filteredProducts.filter(
       (product) => {
-        const name = product.name || "";
+        const title = product.title || "";
         const category =
           product.category || "";
         const brand =
           product.brand || "";
 
         return (
-          name
+          title
             .toLowerCase()
             .includes(
               searchTerm.toLowerCase()
@@ -140,7 +137,7 @@ export default function SearchResults() {
                 key={product._id}
                 id={product._id}
                 name={
-                  product.name ||
+                  product.title ||
                   "Unnamed Product"
                 }
                 category={
