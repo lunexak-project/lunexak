@@ -23,7 +23,7 @@ router.get("/:id", getSingleProduct);
 
 router.put("/:id", requireAuth, requireRole(["admin", "employee"]), updateProduct);
 
-router.delete("/:id", requireAuth, requireRole(["admin"]), deleteProduct);
+router.delete("/:id", requireAuth, requireRole(["admin", "employee"]), deleteProduct);
 
 // PRD specific endpoints for workflow
 router.post("/:id/submit", requireAuth, requireRole(["employee", "admin"]), submitProduct);

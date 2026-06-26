@@ -47,7 +47,7 @@ export default function AdminBannersPage() {
     try {
       setUploading(true);
       const res = await uploadService.uploadImage(e.target.files[0]);
-      setFormData(prev => ({ ...prev, imageUrl: res.url }));
+      setFormData(prev => ({ ...prev, imageUrl: res.imageUrl || res.url }));
     } catch (error) {
       alert("Failed to upload image");
     } finally {

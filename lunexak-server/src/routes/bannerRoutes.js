@@ -12,10 +12,10 @@ const {
 const router = express.Router();
 
 router.get("/", getActiveBanners);
-router.get("/admin/all", requireAuth, requireRole(["admin"]), getBanners);
+router.get("/admin/all", requireAuth, requireRole(["admin", "employee"]), getBanners);
 
-router.post("/", requireAuth, requireRole(["admin"]), createBanner);
-router.put("/:id", requireAuth, requireRole(["admin"]), updateBanner);
-router.delete("/:id", requireAuth, requireRole(["admin"]), deleteBanner);
+router.post("/", requireAuth, requireRole(["admin", "employee"]), createBanner);
+router.put("/:id", requireAuth, requireRole(["admin", "employee"]), updateBanner);
+router.delete("/:id", requireAuth, requireRole(["admin", "employee"]), deleteBanner);
 
 module.exports = router;
