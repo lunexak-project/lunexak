@@ -271,8 +271,8 @@ export const bannerService = {
     const { data } = await api.get("/banners/admin/all");
     return data;
   },
-  getActive: async () => {
-    const { data } = await api.get("/banners");
+  getActive: async (position?: string) => {
+    const { data } = await api.get("/banners", { params: { position } });
     return data;
   },
   create: async (bannerData: any) => {

@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { bannerService, uploadService } from "@/services";
-import { Trash2, Plus, Image as ImageIcon } from "lucide-react";
+import { Trash2, Plus, Image as ImageIcon, Edit2 } from "lucide-react";
 
 export default function AdminBannersPage() {
   const { isAdmin, user } = useAuth();
@@ -11,6 +11,7 @@ export default function AdminBannersPage() {
   const [loading, setLoading] = useState(true);
 
   const [showForm, setShowForm] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     title: "",
     tag: "",
@@ -59,16 +60,40 @@ export default function AdminBannersPage() {
     e.preventDefault();
     if (!formData.imageUrl) return alert("Please upload an image");
     try {
-      await bannerService.create(formData);
+      if (editingId) {
+        await bannerService.update(editingId, formData);
+      } else {
+        await bannerService.create(formData);
+      }
       setShowForm(false);
+      setEditingId(null);
       setFormData({ 
         title: "", tag: "", sub: "", cta: "", secondary: "", secondaryLink: "", bg: "",
         imageUrl: "", linkUrl: "", position: "home-hero", isActive: true 
       });
       fetchBanners();
     } catch (error) {
-      alert("Failed to create banner");
+      alert("Failed to save banner");
     }
+  };
+
+  const handleEdit = (banner: any) => {
+    setEditingId(banner._id);
+    setFormData({
+      title: banner.title || "",
+      tag: banner.tag || "",
+      sub: banner.sub || "",
+      cta: banner.cta || "",
+      secondary: banner.secondary || "",
+      secondaryLink: banner.secondaryLink || "",
+      bg: banner.bg || "",
+      imageUrl: banner.imageUrl || "",
+      linkUrl: banner.linkUrl || "",
+      position: banner.position || "home-hero",
+      isActive: banner.isActive !== undefined ? banner.isActive : true,
+    });
+    setShowForm(true);
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const handleDelete = async (id: string) => {
@@ -91,7 +116,11 @@ export default function AdminBannersPage() {
           <p className="text-gray-500 mt-1">Manage promotional banners for the homepage.</p>
         </div>
         <button 
-          onClick={() => setShowForm(!showForm)}
+          onClick={() => {
+            setEditingId(null);
+            setFormData({ title: "", tag: "", sub: "", cta: "", secondary: "", secondaryLink: "", bg: "", imageUrl: "", linkUrl: "", position: "home-hero", isActive: true });
+            setShowForm(!showForm);
+          }}
           className="bg-black text-white px-5 py-2.5 rounded-lg font-medium hover:bg-gray-800 transition flex items-center gap-2"
         >
           <Plus size={18} /> Add Banner
@@ -137,11 +166,21 @@ export default function AdminBannersPage() {
               <label className="text-sm font-semibold text-gray-700">Background Gradient (Tailwind classes)</label>
               <input type="text" value={formData.bg} onChange={e => setFormData(f => ({ ...f, bg: e.target.value }))} placeholder="E.g. from-[#1a1a2e] via-[#16213e] to-[#0f3460]" className="w-full px-4 py-2 border rounded-lg focus:ring-black focus:border-black" />
             </div>
-            <div className="flex items-center gap-4">
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input type="checkbox" checked={formData.isActive} onChange={e => setFormData(f => ({ ...f, isActive: e.target.checked }))} className="rounded" />
-                <span className="text-sm font-semibold text-gray-700">Active</span>
-              </label>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="text-sm font-semibold text-gray-700">Position</label>
+                <select value={formData.position} onChange={e => setFormData(f => ({ ...f, position: e.target.value }))} className="w-full px-4 py-2 border rounded-lg focus:ring-black focus:border-black">
+                  <option value="home-hero">Home Hero</option>
+                  <option value="shop">Shop Page</option>
+                  <option value="collections">Collections Page</option>
+                </select>
+              </div>
+              <div className="flex items-center gap-4 mt-6">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input type="checkbox" checked={formData.isActive} onChange={e => setFormData(f => ({ ...f, isActive: e.target.checked }))} className="rounded" />
+                  <span className="text-sm font-semibold text-gray-700">Active</span>
+                </label>
+              </div>
             </div>
           </div>
           
@@ -165,7 +204,7 @@ export default function AdminBannersPage() {
                 <img src={formData.imageUrl} alt="Preview" className="w-full h-full object-cover" />
               </div>
             )}
-            <button type="submit" disabled={uploading || !formData.imageUrl} className="w-full bg-black text-white px-4 py-3 rounded-lg font-semibold hover:bg-gray-800 disabled:opacity-50">Save Banner</button>
+            <button type="submit" disabled={uploading || !formData.imageUrl} className="w-full bg-black text-white px-4 py-3 rounded-lg font-semibold hover:bg-gray-800 disabled:opacity-50">{editingId ? "Update Banner" : "Save Banner"}</button>
           </div>
         </form>
       )}
@@ -189,9 +228,14 @@ export default function AdminBannersPage() {
                 </div>
                 <div className="flex items-center justify-between mt-4 border-t pt-4">
                   <span className="text-xs font-semibold text-gray-400">{banner.position}</span>
-                  <button onClick={() => handleDelete(banner._id)} className="p-2 text-red-500 hover:bg-red-50 rounded transition">
-                    <Trash2 size={18} />
-                  </button>
+                  <div className="flex gap-2">
+                    <button onClick={() => handleEdit(banner)} className="p-2 text-blue-500 hover:bg-blue-50 rounded transition">
+                      <Edit2 size={18} />
+                    </button>
+                    <button onClick={() => handleDelete(banner._id)} className="p-2 text-red-500 hover:bg-red-50 rounded transition">
+                      <Trash2 size={18} />
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>

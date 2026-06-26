@@ -11,8 +11,9 @@ const getBanners = async (req, res) => {
 
 const getActiveBanners = async (req, res) => {
   try {
+    const { position } = req.query;
     const now = new Date();
-    const banners = await Banner.find({
+    const query = {
       isActive: true,
       $or: [
         { startDate: { $lte: now }, endDate: { $gte: now } },
@@ -20,7 +21,11 @@ const getActiveBanners = async (req, res) => {
         { startDate: { $lte: now }, endDate: null },
         { startDate: null, endDate: { $gte: now } }
       ]
-    }).sort({ createdAt: -1 });
+    };
+    if (position) {
+      query.position = position;
+    }
+    const banners = await Banner.find(query).sort({ createdAt: -1 });
     res.status(200).json({ success: true, banners });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });

@@ -4,41 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { bannerService } from "@/services";
 
-const defaultSlides = [
-  {
-    tag: "New Season Collection",
-    headline: "Dress to\nImpress",
-    sub: "Explore our latest curated collections — premium quality, timeless style for every occasion.",
-    cta: "Shop Now",
-    ctaLink: "/products",
-    secondary: "Explore Women",
-    secondaryLink: "/category/women",
-    bg: "from-[#0f0c29] via-[#302b63] to-[#24243e]",
-    image: "https://images.unsplash.com/photo-1483985988355-763728e1935b?w=800&q=80",
-  },
-  {
-    tag: "Men's Essentials",
-    headline: "Bold &\nTimeless",
-    sub: "Premium menswear crafted for the modern lifestyle. From casual to formal, we've got you covered.",
-    cta: "Shop Men",
-    ctaLink: "/category/men",
-    secondary: "View All",
-    secondaryLink: "/products",
-    bg: "from-[#1a1a2e] via-[#16213e] to-[#0f3460]",
-    image: "https://images.unsplash.com/photo-1617127365659-c47fa864d8bc?w=800&q=80",
-  },
-  {
-    tag: "Kids & Family",
-    headline: "Fun &\nComfy",
-    sub: "Colorful, durable clothing for kids who love to play. Quality that parents trust.",
-    cta: "Shop Kids",
-    ctaLink: "/category/kids",
-    secondary: "Home & Kitchen",
-    secondaryLink: "/category/home-kitchen",
-    bg: "from-[#134e5e] via-[#71b280] to-[#134e5e]",
-    image: "https://images.unsplash.com/photo-1519238263530-99bdd11df2ea?w=800&q=80",
-  },
-];
+const defaultSlides: any[] = [];
 
 const bgOptions = [
   "from-[#0f0c29] via-[#302b63] to-[#24243e]",
@@ -68,6 +34,8 @@ export default function HeroSection() {
             image: b.imageUrl,
           }));
           setSlides(dynamicSlides);
+        } else {
+          setSlides([]);
         }
       } catch (err) {
         console.error("Failed to fetch banners", err);
@@ -83,7 +51,9 @@ export default function HeroSection() {
     return () => clearInterval(timer);
   }, [slides.length]);
 
-  const slide = slides[current] || defaultSlides[0];
+  if (slides.length === 0) return null;
+
+  const slide = slides[current];
 
   return (
     <section

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useMemo, useCallback } from "react";
-import { productService, categoryService } from "@/services";
+import { productService, categoryService, bannerService } from "@/services";
 import ProductCard from "@/components/ui/ProductCard";
 import { useCart } from "@/context/CartContext";
 import { useWishlist } from "@/context/WishlistContext";
@@ -20,6 +20,7 @@ export default function CategoryPage() {
 
   const [allProducts, setAllProducts] = useState<any[]>([]);
   const [category, setCategory] = useState<any>(null);
+  const [banner, setBanner] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   
   // Filter state
@@ -83,6 +84,18 @@ export default function CategoryPage() {
     return () => clearTimeout(delay);
   }, [fetchData]);
 
+  useEffect(() => {
+    const fetchBanner = async () => {
+      try {
+        const res = await bannerService.getActive("collections");
+        if (res.banners && res.banners.length > 0) {
+          setBanner(res.banners[0]);
+        }
+      } catch (err) {}
+    };
+    fetchBanner();
+  }, []);
+
   const clearFilters = () => {
     setSearch("");
     setMinPrice("");
@@ -111,6 +124,18 @@ export default function CategoryPage() {
 
   return (
     <div className="max-w-7xl mx-auto px-6 py-12">
+      {/* Banner */}
+      {banner && (
+        <div className={`relative w-full h-64 md:h-80 rounded-3xl overflow-hidden mb-8 flex items-center justify-center text-center p-8 bg-gradient-to-br ${banner.bg || "from-gray-900 to-black"}`}>
+          <img src={banner.imageUrl} alt={banner.title} className="absolute inset-0 w-full h-full object-cover opacity-40 mix-blend-overlay" />
+          <div className="relative z-10 text-white max-w-2xl">
+            {banner.tag && <span className="inline-block bg-white/20 text-white text-xs font-bold uppercase tracking-widest px-3 py-1 rounded-full mb-3">{banner.tag}</span>}
+            <h2 className="text-4xl md:text-5xl font-black mb-4 whitespace-pre-line">{banner.title.replace(" ", "\n")}</h2>
+            {banner.sub && <p className="text-white/80">{banner.sub}</p>}
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-end justify-between mb-8 gap-4">
         <div>
