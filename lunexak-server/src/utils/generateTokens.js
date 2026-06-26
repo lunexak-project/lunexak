@@ -1,13 +1,13 @@
 const jwt = require("jsonwebtoken");
 
 const generateAccessToken = (id, role) => {
-  return jwt.sign({ id, role }, process.env.JWT_SECRET || "fallback_secret", {
+  return jwt.sign({ id: String(id), role }, process.env.JWT_SECRET || "fallback_secret", {
     expiresIn: "15m",
   });
 };
 
 const generateRefreshToken = (id) => {
-  return jwt.sign({ id }, process.env.JWT_REFRESH_SECRET || "fallback_refresh_secret", {
+  return jwt.sign({ id: String(id) }, process.env.JWT_REFRESH_SECRET || "fallback_refresh_secret", {
     expiresIn: "7d",
   });
 };
